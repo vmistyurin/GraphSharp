@@ -15,15 +15,8 @@ namespace GraphSharp
             v1 = _v1;
             v2 = _v2;
         }
-    }
-    /*class Graph
-    {
-        static List<Edge> E;
-
-    }*/
-
-            
-      class DFS
+    }            
+    class DFS
     {
         List<Edge> Edges;
         List<int> ConComp;
@@ -117,6 +110,7 @@ namespace GraphSharp
             }
             Console.WriteLine("Готово");
             Console.WriteLine(probab);
+            Console.WriteLine();
             Console.ReadKey();
         }
         static double Prob(List<bool> used, int n = 0, int deep = 0)
@@ -135,16 +129,3 @@ namespace GraphSharp
         }
     }
 }
-   /* class ProbGraph
-    {
-        private int _numbervertex;
-        public int vertex { get { return _numbervertex; } }
-        public List<List<bool>> edge;
-        public ProbGraph(int _numbofvertex, List<List<bool>> _edge)
-        {
-            edge = _edge;
-            _numbofvertex = _numbervertex;
-        }
-
-    }
-}*/
