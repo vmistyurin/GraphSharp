@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace GraphSharp
 {
@@ -35,7 +34,7 @@ namespace GraphSharp
 
             }
 
-            return sum.answer;
+            return sum.Answer;
         }
 
         private void Prob(List<bool> used, double probability, int n)
