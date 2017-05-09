@@ -1,27 +1,41 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
-using System.Diagnostics;
+using System.Threading;
+
 namespace GraphSharp
 {
-    /*public class Tester
+    public class Tester
     {
-        private readonly StreamWriter _outStream;
-        private readonly StreamWriter _logStream;
+        private readonly TextWriter _outStream;
+        private readonly TextWriter _logStream;
         private readonly string _pathToAnswers;
+        private Queue<double> _answers;
         //private readonly Type _graphType;
-        public Tester(StreamWriter outStream, StreamWriter logStream, string pathToAnswers)
+        public Tester(TextWriter outStream, TextWriter logStream, string pathToAnswers)
         {
             _outStream = outStream;
             _logStream = logStream;
             _pathToAnswers = pathToAnswers;
+            _answers = new Queue<double>();
         }
 
         public void LoadTestsFromDirectory(string path)
         {
+            using (StreamReader answers = new StreamReader(File.Open(_pathToAnswers, FileMode.Open)))
+            {
+                while (!answers.EndOfStream)
+                {
+                    string str = answers.ReadLine();
+                    if (str != String.Empty)
+                        _answers.Enqueue(Convert.ToDouble(str));
+                }
+            }
+
             DirectoryInfo directory = new DirectoryInfo(path);
             foreach (var d in directory.GetDirectories())
             {
@@ -35,10 +49,10 @@ namespace GraphSharp
             double averageTime = 0;
             int numberOfTests = currentDirectory.GetFiles().Length;
             int successfullTests = 0;
-            StreamReader answers = new StreamReader(File.Open(_pathToAnswers, FileMode.Open));
             _logStream.WriteLine($"Тесты для {dimension.Item1},{dimension.Item2} начались!");
             foreach (var test in currentDirectory.GetFiles())
             {
+                _logStream.WriteLine($"{test.Name} начался!");
                 ProbGraph<MatrixGraph> graph = LoadFromFile(new StreamReader(File.Open(test.FullName, FileMode.Open)));
                 Stopwatch timer = new Stopwatch();
                 timer.Start();
@@ -47,13 +61,13 @@ namespace GraphSharp
                 {
                     answer = graph.RelIndex();
                 }
-                catch (Exception e)
+                /*catch (Exception e)
                 {
                     _outStream.WriteLine($"Произошла ошибка! {e.Message} в тесте {test.Name}");
-                }
+                }*/
                 finally
                 {
-                    int expectedAnswer = Convert.ToInt32(answers.ReadLine());
+                    double expectedAnswer = _answers.Dequeue();
                     if (Math.Abs(expectedAnswer - answer) < 0.000001)
                         successfullTests++;
                     averageTime += timer.ElapsedMilliseconds / (1000.0 * numberOfTests);
@@ -67,7 +81,7 @@ namespace GraphSharp
 
         private Tuple<int, int> GetDimension(string directoryName)
         {
-            string[] s = directoryName.Skip(5).ToString().Split(',');
+            string[] s = directoryName.Remove(0, 5).Split(',');
             int V = Convert.ToInt32(s[0]);
             int E = Convert.ToInt32(s[1]);
             return new Tuple<int, int>(V, E);
@@ -96,5 +110,5 @@ namespace GraphSharp
             ProbGraph<MatrixGraph> p = new ProbGraph<MatrixGraph>(graph, important, probabilities);
             return p;
         }
-    }*/
+    }
 }
