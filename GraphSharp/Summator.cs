@@ -13,7 +13,7 @@ namespace GraphSharp
         public bool end;
         public double answer;
         public double probability;
-        public int count;
+        public int Count;
         public static int max;
         public Summator()
         {
@@ -22,7 +22,7 @@ namespace GraphSharp
             answer = 0;
             probability = 0;
             Task.Factory.StartNew(() => Listener());
-            count = 0;
+            Count = 0;
         }
 
         public void Add(double probability, int index)
@@ -46,10 +46,10 @@ namespace GraphSharp
                             var r = Sum.Dequeue();
                             answer += r.Item1 * r.Item2;
                             probability += r.Item1;
-                            count++;
+                            Count++;
                             //   Console.WriteLine($"Обновлено, теперь {probability}, индекс {answer}");
                         }
-                        if (count == max)
+                        if (Count == max)
                         {
                             end = true;
                             return;
