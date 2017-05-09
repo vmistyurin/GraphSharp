@@ -2,130 +2,126 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.IO;
 using System.Collections;
+using System.Diagnostics;
+
 namespace GraphSharp
 {
-    class Edge
-    {
-        public int v1, v2;
-        public Edge(int _v1, int _v2)
-        {
-            v1 = _v1;
-            v2 = _v2;
-        }
-    }            
-    class DFS
-    {
-        List<Edge> Edges;
-        List<int> ConComp;
-        int NumberOfDfs = 0;
-        public static int VCount;
-        public static List<int> Big;
-        public DFS(List<Edge> _l, List<bool> _exist)
-        {
-            Edges = new List<Edge>(_l);
-            ConComp = new List<int>(VCount);
-            for (int i = 0; i < VCount; i++)
-            {
-                ConComp.Add(0);
-            }
-            Edges.RemoveAll(edge => (!_exist[edge.v1] || !_exist[edge.v2]) ? true : false);
-        }
-        public void StartDfs(int n = 0)
-        {
-            while (ConComp.Contains(0))
-            {
-                NumberOfDfs++;
-                Dfs(ConComp.IndexOf(0));
-            }
-        }
-        private void Dfs(int n = 0)
-        {
-            ConComp[n] = NumberOfDfs;
-            foreach (var e in Edges)
-            {
-                if (e.v1 == n && ConComp[e.v2] == 0)
-                {
-                    Dfs(e.v2);
-                }
-                if (e.v2 == n && ConComp[e.v1] == 0)
-                {
-                    Dfs(e.v1);
-                }
-            }
-        }
-        public bool sv()
-        {
-            int c = ConComp[Big[0]];
-            foreach (var u in Big)
-            {
-                if (c != ConComp[u])
-                    return false;
-            }
-            return true;
-        }
-    }
+
     class Program
     {
         static double probab = 1.0 / 2;
         static int N, M;
-        static List<int> Big;
-       // static List<List<int>> graph;
         static List<Edge> E;
-        static List<double> Vertex;
+        static List<double> Vertex = new List<double>();
+        static Summator sum;
+
+        private static string DirectoryPath =
+            @"C:\Users\beave\Documents\Visual Studio 2015\Projects\GraphSharp\GraphSharp\bin\Debug\Tests";
+
+        private static int steps = 0;
+
+
         static void Main(string[] args)
         {
-            if (File.Exists("input.txt"))
+            DirectoryInfo directory = new DirectoryInfo(DirectoryPath);
+            using (StreamWriter writer = new StreamWriter(File.Open("results.txt", FileMode.Create)))
             {
-                using (StreamReader reader = new StreamReader(File.Open("input.txt", FileMode.Open)))
+                foreach (var dir in directory.GetDirectories())
                 {
-                    N = Convert.ToInt32(reader.ReadLine()); //читаем количество вершин
-                    DFS.VCount = N;
-                    Vertex = new List<double>(reader.ReadLine().Split(' ').Select(q => Double.Parse(q)).ToArray());//читаем вероятности вершин
-                    Big = new List<int>(reader.ReadLine().Split(' ').Select(n => int.Parse(n)).ToArray()); //читаем номера важных вершин
-                    DFS.Big = Big;
+                    double AverageTime = 0;
+                    var files = dir.GetFiles();
+                    int[] m = new int[3];
 
-                    M = Convert.ToInt32(reader.ReadLine()); //читаем количество ребер
-                    E = new List<Edge>(M); 
-                    for (int i = 0; i < M; i++)
+                    foreach (var f in files)
                     {
-                        string Str = reader.ReadLine();
-                        E.Add(new Edge(Convert.ToInt32(Str.Split(' ')[0]),
-                                       Convert.ToInt32(Str.Split(' ')[1])));
+                        Stopwatch stop = new Stopwatch();
+                        stop.Start();
+                        sum = new Summator();
+                        String TestFile = f.FullName;
+                        if (File.Exists(TestFile))
+                        {
+                            using (StreamReader reader = new StreamReader(File.Open(TestFile, FileMode.Open)))
+                            {
+                                String s = reader.ReadLine();
+                                m[0] = Convert.ToInt32(s.Split(' ')[0]);
+                                m[1] = Convert.ToInt32(s.Split(' ')[1]);
+                                m[2] = Convert.ToInt32(s.Split(' ')[2]);
+                                N = m[0]; //читаем количество вершин
+                                DFS.VCount = N;
+                                String vertex = reader.ReadLine();
+                                String[] splited = vertex.Split(' ');
+                                Vertex = new List<double>();
+                                for (int i = 0; i < splited.Length - 1; i++)
+                                    Vertex.Add(Convert.ToDouble(splited[i]));
+                                DFS.Big = m[2];
+
+                                M = m[1]; //читаем количество ребер
+                                E = new List<Edge>(M);
+                                for (int i = 0; i < M; i++)
+                                {
+                                    string Str = reader.ReadLine();
+                                    E.Add(new Edge(Convert.ToInt32(Str.Split(' ')[0]),
+                                        Convert.ToInt32(Str.Split(' ')[1])));
+                                }
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Не найден файл!");
+                            Console.ReadKey();
+                        }
+                        Summator.max = (int)Math.Pow(2.0,(double) m[0] - m[2]);
+
+                        List <bool> us = new List<bool>();
+                        for (int i = 0; i < DFS.Big; i++)
+                            us.Add(true);
+                        Prob(us, 1, DFS.Big);
+
+                        while (sum.end == false)
+                        {
+
+                        }
+                        AverageTime += stop.ElapsedMilliseconds / (20.0 * 1000.0);
+                        Console.WriteLine($"{TestFile.Split('\\').Last()} файл обработан");
+                        writer.WriteLine(sum.answer);
+                        //Console.WriteLine($"Ответ для {TestFile.Split('\\').Last()} - {sum.answer}");
                     }
+                    writer.WriteLine($"Среднее время расчёта для графа на {m[0]} вершинах и {m[1]} рёбрах было {AverageTime} секунд");
+                    Console.WriteLine($"Расчёт директории {dir.Name} окончен");
+                    // Console.WriteLine();
+                    //Console.WriteLine(
+                    //$"Среднее время расчёта для графа на {m[0]} вершинах и {m[1]} рёбрах было {AverageTime}");
                 }
+                Console.WriteLine("все");
             }
-
-            List<bool> us = new List<bool>(N);
-            for (int i = 0; i < N; i++)
-                us.Add(true);
-
-            probab = Prob(us);
-
-            using (StreamWriter writer = new StreamWriter(File.Open("output.txt", FileMode.Create)))
-            {
-                writer.Write(probab);
-            }
-            Console.WriteLine("Готово");
-            Console.WriteLine(probab);
-            Console.WriteLine();
             Console.ReadKey();
+
         }
-        static double Prob(List<bool> used, int n = 0, int deep = 0)
+
+        static void Prob(List<bool> used, double probability, int n)
         {
             if (n == N)
             {
+                // Console.WriteLine(n);
                 DFS d = new DFS(E, used);
                 d.StartDfs();
-                return d.sv() ? 1 : 0;
+                bool ssv = d.sv();
+                sum.Add(probability, (ssv ? 1 : 0));
+                return;
             }
-            used[n] = true;
-            var v1 = Vertex[n] * Prob(used, n + 1, deep + 1);
-            used[n] = false;
-            var v2 = (1 - Vertex[n]) * Prob(used, n + 1,deep + 1);
-            return v1 + v2;
+            Task.Factory.StartNew(() => Prob(Reliable(used, true), probability * Vertex[n], n + 1));
+            Task.Factory.StartNew(() => Prob(Reliable(used, false), probability * (1 - Vertex[n]), n + 1));
+        }
+
+        static List<bool> Reliable(List<bool> list, bool b)
+        {
+            List<bool> l = new List<bool>(list);
+            l.Add(b);
+            return l;
         }
     }
 }
